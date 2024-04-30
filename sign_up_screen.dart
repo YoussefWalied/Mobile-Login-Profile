@@ -1,4 +1,6 @@
 import 'package:assignment/data_base.dart';
+import 'package:assignment/login_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:assignment/widgets/custom_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -101,7 +103,7 @@ class _SignUpBodyState extends State<SignUpBody> {
                         if (value == null || value.isEmpty) {
                           return 'Please Enter your Email';
                         } else if (!(value.contains("@stud.fci-cu.edu.eg"))) {
-                          return 'Email format should be (Ex. user@stud.fci-cu.edu.eg)';
+                          return 'Email should be (Ex. user@stud.fci-cu.edu.eg)';
                         }
                         return null;
                       },
@@ -296,6 +298,15 @@ class _SignUpBodyState extends State<SignUpBody> {
                       ),
                       onPressed: () async {
                         await signUp(context);
+                        if (successfully) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LoginScreen(),
+                            ),
+                          );
+                        }
+                            
                       },
                       child: const Text(
                         'Sign up',
@@ -322,9 +333,9 @@ class _SignUpBodyState extends State<SignUpBody> {
                             minimumSize: const Size(50, 30),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             alignment: Alignment.centerLeft),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
                           child: const Text('Login',
                               style: TextStyle(
                                 fontFamily: 'Open Sans',
@@ -358,7 +369,7 @@ class _SignUpBodyState extends State<SignUpBody> {
                   fontSize: 15,
                   color: kTextColorWhite,
                 ))));
-      } else {
+      } else  {
         _db.insertToDatabase(
             name: nameController.text,
             id: studentIdController.text,
@@ -367,8 +378,22 @@ class _SignUpBodyState extends State<SignUpBody> {
             gender: _selectedValue,
             password: passwordController.text,
             img:
-                '/data/user/0/com.example.assignment/cache/15921847-6127-4e7c-9d6d-21149cd378ea/images.jpg');
+                'assets/profile.jpg'
+          );
+
+        var auth = FirebaseFirestore.instance;
+        await auth.collection('students').add({
+          'Name': nameController.text,
+          'StudId': studentIdController.text,
+          'email': emailController.text,
+          'Level': drop,
+          'gender': _selectedValue,
+          'Password': passwordController.text,
+          'image':
+              'assets/profile.jpg',
+        }); 
       }
     }
   }
+
 }

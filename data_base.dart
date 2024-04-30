@@ -81,11 +81,9 @@ class DataBase {
   Future<void> update(
       {required int id,
       required String name,
-      required String email,
       required String password,
       required String gender,
       required String level,
-      required String studid,
       required String img,
 
     }) async {
@@ -93,11 +91,9 @@ class DataBase {
       'students',
       {
         'Name': name,
-        'Email': email,
         'Password': password,
         'Gender': gender,
         'Level': level,
-        'StudId': studid,
         'image': img,
       },
       where: 'id = ?',

@@ -4,6 +4,8 @@ import 'package:assignment/sign_up_page.dart';
 import 'package:assignment/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'colortemplate.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -161,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (result[0]) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           backgroundColor: kSecondColor,
-            content: Text("true",
+            content: Text("Logged in successfully",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -173,16 +175,49 @@ class _LoginScreenState extends State<LoginScreen> {
               builder: (context) => ProfileScreen(data: result[1])),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          backgroundColor: kSecondColor,
-            content: Text("Check your ID or password and try again",
-              
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: kTextColorWhite,
-                ))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: kSecondColor,
+            content: Text(
+              "Check your ID or password and try again",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: kTextColorWhite,
+              ),
+            ),
+          ),
+        );
       }
     }
   }
+
+  Future<void> compareInputToFields() async {
+    await Firebase.initializeApp(
+        options: const FirebaseOptions(
+      apiKey: 'key',
+      appId: 'id',
+      messagingSenderId: 'sendid',
+      projectId: 'myapp',
+      storageBucket: 'myapp-b9yt18.appspot.com',
+    ));
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    var docSnapshot;
+    try {
+      DocumentSnapshot documentSnapshot =
+          await FirebaseFirestore.instance.collection('Students').doc().get();
+          var data = docSnapshot.data();
+      String id = documentSnapshot.get('ID');
+      String password = documentSnapshot.get('Password');
+      if (idController.text == id && passwordController.text == password) {
+        print('Inputs matches');
+      } else {
+        print('Input does not match the field value.');
+      }
+    } catch (e) {
+      print('Error comparing input to fields: $e');
+    }
+  }
 }
+

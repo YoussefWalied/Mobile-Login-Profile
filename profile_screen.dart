@@ -3,6 +3,7 @@ import 'package:assignment/data_base.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileScreen extends StatefulWidget {
   final dynamic data;
@@ -29,6 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController levelController = TextEditingController();
 
   final TextEditingController genderController = TextEditingController();
+
   late String imageString = "";
 
   void getImagefromCamera() async {
@@ -158,80 +160,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Padding(
                 padding: EdgeInsets.fromLTRB(25,0,0,0),
                 child: Text(
-                "ID",
-                style: TextStyle(fontSize: 20, color: Colors.black),
+                  "ID",
+                  style: TextStyle(fontSize: 20, color: Colors.black),
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(5,7.5,35, 7.5),
-                child: Container(
-                width: 270,
-                height: 50,
-                padding: const EdgeInsets.symmetric(horizontal: 12,vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: GestureDetector(
-                  onTap: _toggleEdit,
-                  child: _isEditing
-                    ? TextFormField(
-                      controller: studentIdController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Enter ID...',
-                      contentPadding: EdgeInsets.symmetric(vertical: 9),
-                      ),
-                    )
-                    : Text(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(5,7.5,35, 7.5),
+                  child: Container(
+                    width: 270,
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(horizontal: 12,vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
                       studentIdController.text,
                       style: const TextStyle(fontSize: 20),
                     ),
+                  ),
                 ),
-                ),
-              ),
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(25,0,0,0),
-                child: Text(
-                "Email",
-                style: TextStyle(fontSize: 20, color: Colors.black),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(5,7.5,35, 7.5),
-                child: Container(
-                width: 270,
-                height: 50,
-                padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: GestureDetector(
-                  onTap: _toggleEdit,
-                  child: _isEditing
-                    ? TextFormField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Enter email...',
-                      contentPadding: EdgeInsets.symmetric(vertical: 9),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(25,0,0,0),
+                  child: Text(
+                    "Email",
+                    style: TextStyle(fontSize: 20, color: Colors.black),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5,7.5,35, 7.5),
+                    child: Container(
+                    width: 270,
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                        emailController.text,
+                        style: const TextStyle(fontSize: 17,fontWeight: FontWeight.w400),
                       ),
-                    )
-                    : Text(
-                      emailController.text,
-                      style: const TextStyle(fontSize: 17,fontWeight: FontWeight.w400),
                     ),
                 ),
-                ),
-              ),
               ],
             ),
             
@@ -258,19 +234,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: GestureDetector(
                   onTap: _toggleEdit,
                   child: _isEditing
-                    ? TextFormField(
-                      controller: levelController,
-                      keyboardType: TextInputType.text,
-                      decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Enter level...',
-                      contentPadding: EdgeInsets.symmetric(vertical: 9),
-                      ),
-                    )
-                    : Text(
-                      levelController.text,
-                      style: const TextStyle(fontSize: 20),
+                  ? TextFormField(
+                    controller: levelController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Enter level...',
+                    contentPadding: EdgeInsets.symmetric(vertical: 9),
                     ),
+                    validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a level';
+                    } else {
+                      int? level = int.tryParse(value);
+                      if (level == null || level < 1 || level > 4) {
+                      return 'Level must be between 1 and 4';
+                      }
+                    }
+                    return null;
+                    },
+                  )
+                  : Text(
+                    levelController.text,
+                    style: const TextStyle(fontSize: 20),
+                  ),
                 ),
                 ),
               ),
@@ -280,40 +267,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
               const Padding(
-                padding: EdgeInsets.fromLTRB(11,0,0,0),
-                child: Text(
-                "Password",
-                style: TextStyle(fontSize: 20, color: Colors.black),
-                ),
+              padding: EdgeInsets.fromLTRB(11,0,0,0),
+              child: Text(
+              "Password",
+              style: TextStyle(fontSize: 20, color: Colors.black),
+              ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(5,7.5,35, 7.5),
-                child: Container(
-                width: 270,
-                height: 50,
-                padding: const EdgeInsets.symmetric(horizontal: 12,vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(10),
+              padding: const EdgeInsets.fromLTRB(5,7.5,35, 7.5),
+              child: Container(
+              width: 270,
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 12,vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: GestureDetector(
+                onTap: _toggleEdit,
+                child: _isEditing
+                ? TextFormField(
+                  controller: passwordController,
+                  keyboardType: TextInputType.text,
+                  decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Enter password...',
+                  contentPadding: EdgeInsets.symmetric(vertical: 9),
+                  ),
+                  validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please Enter Confirm  Password';
+                  } else if (value.length < 8) {
+                    return "Password should be at least 8 characters";
+                  }
+                  return null;
+                  },
+                )
+                : Text(
+                  passwordController.text,
+                  style: const TextStyle(fontSize: 20),
                 ),
-                child: GestureDetector(
-                  onTap: _toggleEdit,
-                  child: _isEditing
-                    ? TextFormField(
-                      controller: passwordController,
-                      keyboardType: TextInputType.text,
-                      decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Enter password...',
-                      contentPadding: EdgeInsets.symmetric(vertical: 9),
-                      ),
-                    )
-                    : Text(
-                      passwordController.text,
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                ),
-                ),
+              ),
+              ),
               ),
               ],
             ),
@@ -364,7 +359,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-              updateName();
+                updateName();
+                updatelocal();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: kSecondColor,
@@ -379,11 +375,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void updateName() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    try {
+      // Fetch the document ID based on the logged-in user's StudId
+      QuerySnapshot querySnapshot = await firestore
+          .collection('students')
+          .where('StudId', isEqualTo: result['StudId'])
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Get the first document ID found
+        String docId = querySnapshot.docs.first.id;
+
+        // Check if the imageString is empty or the file doesn't exist
+        if (imageString.isEmpty || !File(imageString).existsSync()) {
+          // Assign default image path if imageString is empty
+          imageString = 'assets/profile.jpg';
+        }
+
+        // Update the document with the obtained document ID
+        DocumentReference docRef = firestore.collection('students').doc(docId);
+
+        await docRef.update({
+          'Name': nameController.text,
+          'Password': passwordController.text,
+          'Level': levelController.text,
+          'gender': genderController.text,
+          'image': imageString,
+        });
+
+        print('Document updated successfully.');
+      } else {
+        // No document found with the logged-in user's StudId
+        print('No document found with the logged-in user\'s StudId.');
+      }
+    } catch (e) {
+      print('Error updating document: $e');
+    }
+  }
+
+
+
+
+  void updatelocal() async {
     await _db.update(
         name: nameController.text,
         id: result["id"],
-        studid: studentIdController.text,
-        email: emailController.text,
         password: passwordController.text,
         level: levelController.text,
         gender: genderController.text,
